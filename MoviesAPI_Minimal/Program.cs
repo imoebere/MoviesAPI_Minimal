@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Cors;
+using Microsoft.AspNetCore.OutputCaching;
 using Microsoft.VisualBasic;
 using MoviesAPI_Minimal.Entities;
 using MoviesAPI_Minimal.Repostories;
@@ -50,34 +51,27 @@ app.UseOutputCache();
 
 app.MapGet("/", () => "Hello, World");
 
-app.MapGet("/genres", () =>
+app.MapGet("/genres", async (IGenreRepository genreRepository) =>
 {
-    var genres = new List<Genre>()
+    return await genreRepository.GetAll();
+
+}).CacheOutput(c => c.Expire(TimeSpan.FromSeconds(60)).Tag("genres-get"));
+
+app.MapGet("/genres/{id:int}", async (int id, IGenreRepository genreRepository) =>
+{
+    var genres = await genreRepository.GetById(id);
+    
+    if(genres is null)
     {
-        new Genre
-        {
-            Id = 1,
-            Name = "Drama"
-        },
-        new Genre
-        {
-            Id = 2,
-            Name = "Action"
-        },
-        new Genre
-        {
-            Id = 3,
-            Name = "Comedy"
-        }
-    };
+        return Results.NotFound();
+    }
+    return Results.Ok(genres);
+});
 
-    return genres;
-}).CacheOutput(c => c.Expire(TimeSpan.FromSeconds(15)));
-
-
-app.MapPost("/genres", async (Genre genres, IGenreRepository genresRepository) =>
+app.MapPost("/genres", async (Genre genres, IGenreRepository genresRepository, IOutputCacheStore outputCacheStore) =>
 {
     await genresRepository.Create(genres);
+    await outputCacheStore.EvictByTagAsync("genres-get", default);
     return TypedResults.Created($"/genres/{genres.Id}", genres);
 });
 // Middleware - END

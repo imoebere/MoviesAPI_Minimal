@@ -6,7 +6,7 @@ namespace MoviesAPI_Minimal.Repostories.Interface
     {
         Task<int> Create(Genre genres);
         Task<List<Genre>> GetAll();
-        Task<Genre> GetById(int id);
+        Task<Genre?> GetById(int id);
 
 
     }

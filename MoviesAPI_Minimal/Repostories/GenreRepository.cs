@@ -42,11 +42,15 @@ namespace MoviesAPI_Minimal.Repostories
             
         }
 
-        public Task<Genre> GetById(int id)
+        public async Task<Genre?> GetById(int id)
         {
             using (var connnection = new SqlConnection(connectionStrings)) 
-            { 
-            
+            {
+                var genres = await connnection.QueryFirstOrDefaultAsync<Genre>(@"SELECT Id, Name 
+                                                                                FROM Genres
+                                                                                WHERE Id = @Id", new { id });
+
+                return genres;
             
             }
         }
