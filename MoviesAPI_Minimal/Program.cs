@@ -68,11 +68,41 @@ app.MapGet("/genres/{id:int}", async (int id, IGenreRepository genreRepository) 
     return Results.Ok(genres);
 });
 
-app.MapPost("/genres", async (Genre genres, IGenreRepository genresRepository, IOutputCacheStore outputCacheStore) =>
+app.MapPost("/genres", async (Genre genres, IGenreRepository genresRepository, 
+    IOutputCacheStore outputCacheStore) =>
 {
     await genresRepository.Create(genres);
     await outputCacheStore.EvictByTagAsync("genres-get", default);
     return TypedResults.Created($"/genres/{genres.Id}", genres);
+});
+
+app.MapPut("/genres/{id:int}", async (int id, Genre genres, IGenreRepository genreRepository,
+    IOutputCacheStore outputCacheStore) =>
+{
+    var exists = await genreRepository.Exists(id);
+
+    if (!exists)
+    {
+        return Results.NotFound();
+    }
+
+    await genreRepository.Update(genres);
+    await outputCacheStore.EvictByTagAsync("genres-get", default);
+    return Results.NoContent();
+});
+
+app.MapDelete("/genres/{id:int}", async (int id, IGenreRepository genreRepository,
+    IOutputCacheStore outputCacheStore) =>
+{
+    var exists = await genreRepository.Exists(id);
+
+    if (!exists)
+    {
+        return Results.NotFound();
+    }
+    await genreRepository.Delete(id);
+    await outputCacheStore.EvictByTagAsync("genres-get", default);
+    return Results.NoContent();
 });
 // Middleware - END
 

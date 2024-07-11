@@ -31,11 +31,34 @@ namespace MoviesAPI_Minimal.Repostories
             }
         }
 
+        public async Task Delete(int id)
+        {
+            using (var connection = new SqlConnection(connectionStrings)) 
+            {
+                await connection.ExecuteAsync(@"DELETE Genres WHERE Id = @Id", new {id});
+            }
+
+        }
+
+        public async Task<bool> Exists(int id)
+        {
+            using (var connection = new SqlConnection(connectionStrings))
+            {
+                var exists = await connection.QuerySingleAsync<bool>(@"IF EXISTS 
+                                                                        (SELECT 1 FROM Genres WHERE Id = @Id)
+		                                                                    SELECT 1;
+                                                                       ELSE
+		                                                                     SELECT 0;", new {id});
+
+                return exists;
+            }
+        }
+
         public async Task<List<Genre>> GetAll()
         {
             using (var connection = new SqlConnection(connectionStrings))
             {
-                var genres = await connection.QueryAsync<Genre>(@"SELECT Id, Name FROM Genres");
+                var genres = await connection.QueryAsync<Genre>(@"SELECT Id, Name FROM Genres ORDER BY Name");
 
                 return genres.ToList();
             }
@@ -52,6 +75,16 @@ namespace MoviesAPI_Minimal.Repostories
 
                 return genres;
             
+            }
+        }
+
+        public async Task Update(Genre genre)
+        {
+            using (var connection = new SqlConnection(connectionStrings))
+            {
+                await connection.ExecuteAsync(@"UPDATE Genres 
+                                                SET Name = @Name
+                                                WHERE Id = @Id", genre);
             }
         }
     }
