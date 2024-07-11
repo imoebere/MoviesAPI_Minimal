@@ -2,6 +2,7 @@
 using Microsoft.Data.SqlClient;
 using MoviesAPI_Minimal.Entities;
 using MoviesAPI_Minimal.Repostories.Interface;
+using System.Data;
 using System.Data.Common;
 
 namespace MoviesAPI_Minimal.Repostories
@@ -58,7 +59,8 @@ namespace MoviesAPI_Minimal.Repostories
         {
             using (var connection = new SqlConnection(connectionStrings))
             {
-                var genres = await connection.QueryAsync<Genre>(@"SELECT Id, Name FROM Genres ORDER BY Name");
+                var genres = await connection.QueryAsync<Genre>(@"Genres_GetAll", 
+                            commandType: CommandType.StoredProcedure);
 
                 return genres.ToList();
             }
