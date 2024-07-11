@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Cors;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.OutputCaching;
 using Microsoft.VisualBasic;
 using MoviesAPI_Minimal.Entities;
@@ -51,59 +52,72 @@ app.UseOutputCache();
 
 app.MapGet("/", () => "Hello, World");
 
-app.MapGet("/genres", async (IGenreRepository genreRepository) =>
+var genresEndpoints = app.MapGroup("/genres");
+
+genresEndpoints.MapGet("/", GetGenres).CacheOutput(c => c.Expire(TimeSpan.FromSeconds(60)).Tag("genres-get"));
+
+genresEndpoints.MapGet("/{id:int}", GetById);
+
+genresEndpoints.MapPost("/", Create);
+
+genresEndpoints.MapPut("/{id:int}", Update);
+
+genresEndpoints.MapDelete("/{id:int}", Delete);
+// Middleware - END
+
+app.Run();
+
+static async Task<Ok<List<Genre>>> GetGenres (IGenreRepository genreRepository) 
 {
-    return await genreRepository.GetAll();
+    var genres = await genreRepository.GetAll();
+    return TypedResults.Ok(genres);
 
-}).CacheOutput(c => c.Expire(TimeSpan.FromSeconds(60)).Tag("genres-get"));
+}
 
-app.MapGet("/genres/{id:int}", async (int id, IGenreRepository genreRepository) =>
+static async Task<Results<Ok<Genre>, NotFound>> GetById (int id, IGenreRepository genreRepository) 
 {
     var genres = await genreRepository.GetById(id);
-    
-    if(genres is null)
-    {
-        return Results.NotFound();
-    }
-    return Results.Ok(genres);
-});
 
-app.MapPost("/genres", async (Genre genres, IGenreRepository genresRepository, 
-    IOutputCacheStore outputCacheStore) =>
+    if (genres is null)
+    {
+        return TypedResults.NotFound();
+    }
+    return TypedResults.Ok(genres);
+}
+
+static async Task<Created<Genre>> Create (Genre genres, IGenreRepository genresRepository,
+    IOutputCacheStore outputCacheStore) 
 {
     await genresRepository.Create(genres);
     await outputCacheStore.EvictByTagAsync("genres-get", default);
     return TypedResults.Created($"/genres/{genres.Id}", genres);
-});
+}
 
-app.MapPut("/genres/{id:int}", async (int id, Genre genres, IGenreRepository genreRepository,
-    IOutputCacheStore outputCacheStore) =>
+static async Task<Results<NotFound, NoContent>> Update (int id, Genre genres, IGenreRepository genreRepository,
+    IOutputCacheStore outputCacheStore) 
 {
     var exists = await genreRepository.Exists(id);
 
     if (!exists)
     {
-        return Results.NotFound();
+        return TypedResults.NotFound();
     }
 
     await genreRepository.Update(genres);
     await outputCacheStore.EvictByTagAsync("genres-get", default);
-    return Results.NoContent();
-});
+    return TypedResults.NoContent();
+}
 
-app.MapDelete("/genres/{id:int}", async (int id, IGenreRepository genreRepository,
-    IOutputCacheStore outputCacheStore) =>
+static async Task<Results<NoContent, NotFound>> Delete (int id, IGenreRepository genreRepository,
+    IOutputCacheStore outputCacheStore)
 {
     var exists = await genreRepository.Exists(id);
 
     if (!exists)
     {
-        return Results.NotFound();
+        return TypedResults.NotFound();
     }
     await genreRepository.Delete(id);
     await outputCacheStore.EvictByTagAsync("genres-get", default);
-    return Results.NoContent();
-});
-// Middleware - END
-
-app.Run();
+    return TypedResults.NoContent();
+}
