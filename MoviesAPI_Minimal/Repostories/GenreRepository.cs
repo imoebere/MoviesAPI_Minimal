@@ -78,7 +78,8 @@ namespace MoviesAPI_Minimal.Repostories
         {
             using (var connection = new SqlConnection(connectionStrings))
             {
-                await connection.ExecuteAsync("Genres_Update", genre, commandType: CommandType.StoredProcedure);
+                await connection.ExecuteAsync("Genres_Update", new { genre.Id, genre.Name }, 
+                    commandType: CommandType.StoredProcedure);
             }
         }
     }
