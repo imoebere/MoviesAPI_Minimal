@@ -19,13 +19,10 @@ namespace MoviesAPI_Minimal.Repostories
         {
             using (var connection = new SqlConnection(connectionStrings)) 
             {
-                var query = @"
-                                INSERT INTO Genres (Name) VALUES (@Name);
+                //var query = "Genres_Create";
 
-                                SELECT SCOPE_IDENTITY();
-                            ";
-
-                var id = await connection.QuerySingleAsync<int>(query, genres);
+                var id = await connection.QuerySingleAsync<int>("Genres_Create", new { genres.Name },
+                    commandType: CommandType.StoredProcedure);
                 genres.Id = id;
 
                 return id;
@@ -36,7 +33,8 @@ namespace MoviesAPI_Minimal.Repostories
         {
             using (var connection = new SqlConnection(connectionStrings)) 
             {
-                await connection.ExecuteAsync(@"DELETE Genres WHERE Id = @Id", new {id});
+                await connection.ExecuteAsync("Genres_Delete", new {id}, 
+                    commandType: CommandType.StoredProcedure);
             }
 
         }
@@ -45,11 +43,8 @@ namespace MoviesAPI_Minimal.Repostories
         {
             using (var connection = new SqlConnection(connectionStrings))
             {
-                var exists = await connection.QuerySingleAsync<bool>(@"IF EXISTS 
-                                                                        (SELECT 1 FROM Genres WHERE Id = @Id)
-		                                                                    SELECT 1;
-                                                                       ELSE
-		                                                                     SELECT 0;", new {id});
+                var exists = await connection.QuerySingleAsync<bool>("Genres_Exists", new {id}, 
+                    commandType: CommandType.StoredProcedure);
 
                 return exists;
             }
@@ -71,9 +66,8 @@ namespace MoviesAPI_Minimal.Repostories
         {
             using (var connnection = new SqlConnection(connectionStrings)) 
             {
-                var genres = await connnection.QueryFirstOrDefaultAsync<Genre>(@"SELECT Id, Name 
-                                                                                FROM Genres
-                                                                                WHERE Id = @Id", new { id });
+                var genres = await connnection.QueryFirstOrDefaultAsync<Genre>("Genres_GetById", new { id },
+                  commandType: CommandType.StoredProcedure);
 
                 return genres;
             
@@ -84,9 +78,7 @@ namespace MoviesAPI_Minimal.Repostories
         {
             using (var connection = new SqlConnection(connectionStrings))
             {
-                await connection.ExecuteAsync(@"UPDATE Genres 
-                                                SET Name = @Name
-                                                WHERE Id = @Id", genre);
+                await connection.ExecuteAsync("Genres_Update", genre, commandType: CommandType.StoredProcedure);
             }
         }
     }
