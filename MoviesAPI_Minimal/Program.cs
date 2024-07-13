@@ -1,6 +1,7 @@
 using MoviesAPI_Minimal.Endpoints;
 using MoviesAPI_Minimal.Repostories;
 using MoviesAPI_Minimal.Repostories.Interface;
+using MoviesAPI_Minimal.Services;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -27,8 +28,11 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddScoped<IGenreRepository, GenreRepository>();
 builder.Services.AddScoped<IActorsRepository, ActorsRepository>();
+builder.Services.AddTransient<IFileStorage, LocalFileStorage>();
+builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddAutoMapper(typeof(Program));
+
 //Services Zone - END
 
 var app = builder.Build();
@@ -39,6 +43,8 @@ var app = builder.Build();
 app.UseSwagger();
 app.UseSwaggerUI();
 
+app.UseStaticFiles();
+
 app.UseCors();
 
 app.UseOutputCache();
@@ -46,6 +52,7 @@ app.UseOutputCache();
 app.MapGet("/", () => "Hello, World");
 
 app.MapGroup("/genres").MapGenres();
+app.MapGroup("/actors").MapActors();
 
 // Middleware - END
 
