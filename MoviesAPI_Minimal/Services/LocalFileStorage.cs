@@ -24,14 +24,14 @@ namespace MoviesAPI_Minimal.Services
         {
             var extension = Path.GetExtension(file.FileName);
             var filename = $"{Guid.NewGuid()}{extension}";
-            string folder = Path.Combine(environment.WebRootPath, extension);
+            string folder = Path.Combine(environment.WebRootPath, container);
             
             if (!Directory.Exists(folder)) 
             { 
                 Directory.CreateDirectory(folder);
             }
             
-            string route = Path.Combine(folder, extension);
+            string route = Path.Combine(folder, filename);
             using (var ms =  new MemoryStream())
             {
                 await file.CopyToAsync(ms);
