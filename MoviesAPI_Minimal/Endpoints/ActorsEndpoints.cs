@@ -19,6 +19,8 @@ namespace MoviesAPI_Minimal.Endpoints
             groupBuilder.MapGet("/{id:int}", GetById);
             groupBuilder.MapGet("getByName/{name}", GetByName);
             groupBuilder.MapPost("/", Create).DisableAntiforgery();
+            groupBuilder.MapPut("/{id:int}", Update).DisableAntiforgery();
+            groupBuilder.MapDelete("/{id:int}", Delete);
             return groupBuilder;
 
         }
@@ -68,5 +70,49 @@ namespace MoviesAPI_Minimal.Endpoints
             var actorsDTO = mapper.Map<ActorDTO>(actors);
             return TypedResults.Created($"/actors/{id}", actorsDTO);
         }
+
+        static async Task<Results<NoContent, NotFound>> Update(int id, [FromForm] CreateActorDTO createActorDTO,
+            IFileStorage fileStorage,IActorsRepository actorsRepository, IOutputCacheStore outputCacheStore,
+            IMapper mapper)
+        {
+            var actorDB = await actorsRepository.GetById(id);
+
+            if(actorDB is null)
+            {
+                return TypedResults.NotFound();
+            }
+
+            var actorForUpdate = mapper.Map<Actor>(createActorDTO);
+            actorForUpdate.Id = id;
+            actorForUpdate.Picture = actorDB.Picture;
+
+            if(createActorDTO.Picture is not null)
+            {
+                var url = await fileStorage.Edit(actorForUpdate.Picture, container, createActorDTO.Picture);
+                actorForUpdate.Picture = url;
+            }
+
+            await actorsRepository.Update(actorForUpdate);
+            await outputCacheStore.EvictByTagAsync("actors-get", default);
+            return TypedResults.NoContent();
+        }
+
+        static async Task<Results<NoContent, NotFound>> Delete(int id, IFileStorage fileStorage, 
+            IActorsRepository actorsRepository, IOutputCacheStore outputCacheStore)
+        {
+            var actorDB = await actorsRepository.GetById(id);
+
+            if (actorDB is null)
+            {
+                return TypedResults.NotFound();
+            }
+
+            await actorsRepository.Delete(id);
+            await fileStorage.Delete(actorDB.Picture, container);
+            await outputCacheStore.EvictByTagAsync("actors-get", default);
+            return TypedResults.NoContent();
+
+        }
     }
+
 }
