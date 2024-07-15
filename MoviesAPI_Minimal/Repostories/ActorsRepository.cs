@@ -4,16 +4,19 @@ using MoviesAPI_Minimal.Entities;
 using MoviesAPI_Minimal.Repostories.Interface;
 using System.Data.Common;
 using System.Data;
+using MoviesAPI_Minimal.DTOs;
 
 namespace MoviesAPI_Minimal.Repostories
 {
     public class ActorsRepository : IActorsRepository
     {
         private readonly string connectionString;
+        private readonly HttpContext httpContent;
 
-        public ActorsRepository(IConfiguration configuration)
+        public ActorsRepository(IConfiguration configuration, IHttpContextAccessor httpContextAccessor)
         {
             connectionString = configuration.GetConnectionString("DefaultConnection")!;
+            httpContent = httpContextAccessor.HttpContext!;
         }
 
         public async Task<int> Create(Actor actor)
@@ -32,12 +35,18 @@ namespace MoviesAPI_Minimal.Repostories
             }
         }
 
-        public async Task<List<Actor>> GetAll()
+        public async Task<List<Actor>> GetAll(PaginationDTO pagination)
         {
             using (var connection = new SqlConnection(connectionString))
             {
                 var actor = await connection.QueryAsync<Actor>("Actors_GetAll",
+                    new {pagination.Page, pagination.RecordsPerPage}
+                    ,commandType: CommandType.StoredProcedure);
+
+                var actorCount = await connection.QuerySingleAsync<int>("Actors_Count", 
                     commandType: CommandType.StoredProcedure);
+
+                httpContent.Response.Headers.Append("toalAmountOfRecords", actorCount.ToString());
 
                 return actor.ToList();
             }
@@ -86,6 +95,17 @@ namespace MoviesAPI_Minimal.Repostories
             {
                 await connection.ExecuteAsync("Actors_Delete", new {id},
                     commandType: CommandType.StoredProcedure);  
+            }
+        }
+
+        public async Task<List<Actor>> GetByName(string name)
+        {
+            using (var connection = new SqlConnection(connectionString))
+            {
+                var actors = await connection.QueryAsync<Actor>("Actors_GetByName", new { name },
+                    commandType: CommandType.StoredProcedure);
+
+                return actors.ToList();
             }
         }
     }

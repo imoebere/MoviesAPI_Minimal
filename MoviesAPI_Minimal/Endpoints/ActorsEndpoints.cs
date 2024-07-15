@@ -17,15 +17,17 @@ namespace MoviesAPI_Minimal.Endpoints
             groupBuilder.MapGet("/", GetAll)
                 .CacheOutput(c => c.Expire(TimeSpan.FromMinutes(1)).Tag("actors-get"));
             groupBuilder.MapGet("/{id:int}", GetById);
+            groupBuilder.MapGet("getByName/{name}", GetByName);
             groupBuilder.MapPost("/", Create).DisableAntiforgery();
             return groupBuilder;
 
         }
 
         static async Task<Ok<List<ActorDTO>>> GetAll(IActorsRepository actorsRepository,
-            IMapper mapper)
+            IMapper mapper, int page = 1, int recordsPerPage = 10 )
         {
-           var actors =  await actorsRepository.GetAll();
+            var pagination = new PaginationDTO { Page = page, RecordsPerPage = recordsPerPage};
+           var actors =  await actorsRepository.GetAll(pagination);
             var actorsDTO = mapper.Map<List<ActorDTO>>(actors);
             return TypedResults.Ok(actorsDTO);
         }
@@ -44,6 +46,12 @@ namespace MoviesAPI_Minimal.Endpoints
             return TypedResults.Ok(actorDTO);
         }
 
+        static async Task<Ok<List<ActorDTO>>> GetByName(string name, IActorsRepository actorsRepository, IMapper mapper)
+        {
+            var actors = await actorsRepository.GetByName(name);
+            var actorsDTO = mapper.Map<List<ActorDTO>>(actors);
+            return TypedResults.Ok(actorsDTO);
+        }
         static async Task<Created<ActorDTO>> Create([FromForm] CreateActorDTO createActorDTO, 
             IActorsRepository actorsRepository, IOutputCacheStore outputCacheStore, IMapper mapper, 
             IFileStorage fileStorage)
