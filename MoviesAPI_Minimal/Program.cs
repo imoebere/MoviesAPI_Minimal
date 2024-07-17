@@ -29,6 +29,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<IGenreRepository, GenreRepository>();
 builder.Services.AddScoped<IActorsRepository, ActorsRepository>();
 builder.Services.AddScoped<IMoviesRepository, MoviesRepository>();
+builder.Services.AddScoped<ICommentsRepository, CommentsRepository>();
 builder.Services.AddTransient<IFileStorage, LocalFileStorage>();
 builder.Services.AddHttpContextAccessor();
 
