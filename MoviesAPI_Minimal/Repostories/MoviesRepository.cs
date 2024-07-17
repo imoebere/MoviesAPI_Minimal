@@ -1,0 +1,100 @@
+﻿
+using Dapper;
+using Microsoft.Data.SqlClient;
+using MoviesAPI_Minimal.DTOs;
+using MoviesAPI_Minimal.Entities;
+using MoviesAPI_Minimal.Repostories.Interface;
+using System.Data;
+using System.Net.Http;
+
+namespace MoviesAPI_Minimal.Repostories
+{
+    public class MoviesRepository : IMoviesRepository
+    {
+        private readonly string connectionString;
+        private HttpContext httpContext;
+
+        public MoviesRepository(IConfiguration configuration, HttpContextAccessor contextAccessor)
+        {
+            connectionString = configuration.GetConnectionString("DefaultConnection")!;
+            httpContext = contextAccessor.HttpContext!;
+        }
+
+        public async Task<int> Create(Movie movie)
+        {
+            using (var connection = new SqlConnection(connectionString))
+            {
+                var id = await connection.QuerySingleAsync<int>("Movie_Create", new
+                { movie.Title, movie.Poster, movie.InTheater, movie.ReleaseDate },
+                commandType: CommandType.StoredProcedure);
+                movie.Id = id;
+                return id;
+            }
+        }
+
+        public async Task<List<Movie>> GetAll(PaginationDTO pagination)
+        {
+            using (var connection = new SqlConnection(connectionString))
+            {
+                var movies = await connection.QueryAsync<Movie>("Movies_GetAll",
+                   new { pagination.Page, pagination.RecordsPerPage }
+                   , commandType: CommandType.StoredProcedure);
+
+                var moviesCount = await connection.QuerySingleAsync<int>("Movies_Count",
+                    commandType: CommandType.StoredProcedure);
+
+                httpContext.Response.Headers.Append("toalAmountOfRecords", moviesCount.ToString());
+
+                return movies.ToList();
+
+            }
+        }
+
+        public async Task<Movie?> GetById(int id)
+        {
+            using (var connection = new SqlConnection(connectionString))
+            {
+                var movie = await connection.QueryFirstOrDefaultAsync<Movie>("Movies_GetById",
+                    new { id }, commandType: CommandType.StoredProcedure);
+
+                return movie;
+            }
+        }
+
+        public async Task<bool> Exist(int id)
+        {
+            using (var connection = new SqlConnection(connectionString))
+            {
+                var exist = await connection.QuerySingleAsync<bool>("Movies_Exist", new { id },
+                    commandType: CommandType.StoredProcedure);
+
+                return exist;
+            }
+        }
+
+        public async Task Update(Movie movie)
+        {
+            using (var connection = new SqlConnection(connectionString))
+            {
+                await connection.ExecuteAsync("Movies_Update", new
+                {
+                    movie.Id,
+                    movie.Title,
+                    movie.ReleaseDate,
+                    movie.Poster,
+                    movie.InTheater
+                }, commandType: CommandType.StoredProcedure);
+
+            }
+        }
+
+        public async Task Delete(int id)
+        {
+            using (var connection = new SqlConnection(connectionString))
+            {
+                await connection.ExecuteAsync("Movies_Delete", new { id },
+                    commandType: CommandType.StoredProcedure);
+            }
+        }
+    }
+}
