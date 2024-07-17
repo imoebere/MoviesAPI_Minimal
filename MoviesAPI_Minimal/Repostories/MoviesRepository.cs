@@ -12,9 +12,9 @@ namespace MoviesAPI_Minimal.Repostories
     public class MoviesRepository : IMoviesRepository
     {
         private readonly string connectionString;
-        private HttpContext httpContext;
+        private readonly HttpContext httpContext;
 
-        public MoviesRepository(IConfiguration configuration, HttpContextAccessor contextAccessor)
+        public MoviesRepository(IConfiguration configuration, IHttpContextAccessor contextAccessor)
         {
             connectionString = configuration.GetConnectionString("DefaultConnection")!;
             httpContext = contextAccessor.HttpContext!;
@@ -25,7 +25,7 @@ namespace MoviesAPI_Minimal.Repostories
             using (var connection = new SqlConnection(connectionString))
             {
                 var id = await connection.QuerySingleAsync<int>("Movie_Create", new
-                { movie.Title, movie.Poster, movie.InTheater, movie.ReleaseDate },
+                { movie.Title, movie.Poster, movie.InTheaters, movie.ReleaseDate },
                 commandType: CommandType.StoredProcedure);
                 movie.Id = id;
                 return id;
@@ -82,7 +82,7 @@ namespace MoviesAPI_Minimal.Repostories
                     movie.Title,
                     movie.ReleaseDate,
                     movie.Poster,
-                    movie.InTheater
+                    movie.InTheaters
                 }, commandType: CommandType.StoredProcedure);
 
             }
