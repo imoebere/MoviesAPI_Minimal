@@ -54,10 +54,17 @@ namespace MoviesAPI_Minimal.Repostories
         {
             using (var connection = new SqlConnection(connectionString))
             {
-                var movie = await connection.QueryFirstOrDefaultAsync<Movie>("Movies_GetById",
-                    new { id }, commandType: CommandType.StoredProcedure);
+                using(var multi = await connection.QueryMultipleAsync("Movies_GetById", new { id }))
+                {
+                    var movie = await multi.ReadFirstAsync<Movie>();
+                    var comment = await multi.ReadAsync<Comment>();
+                    movie.Comments = comment.ToList();
+                    return movie;
+                }
+                //var movie = await connection.QueryFirstOrDefaultAsync<Movie>("Movies_GetById",
+                   // new { id }, commandType: CommandType.StoredProcedure);
 
-                return movie;
+               
             }
         }
 
