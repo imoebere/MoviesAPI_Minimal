@@ -25,7 +25,7 @@ namespace MoviesAPI_Minimal.Endpoints
             }
 
             var comment = mapper.Map<Comment>(createCommentDTO);
-            comment.Id = movieId;
+            comment.MovieId = movieId;
             var id = await commentsRepository.Create(comment);
             await outputCacheStore.EvictByTagAsync("comments-get", default);
             var commentDTO = mapper.Map<CommentDTO>(comment);
