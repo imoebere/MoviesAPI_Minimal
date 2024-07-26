@@ -5,6 +5,7 @@ namespace MoviesAPI_Minimal.Repostories.Interface
 {
     public interface IMoviesRepository
     {
+        Task Assign(int id, List<int> genresIds);
         Task<int> Create(Movie movie);
         Task Delete(int id);
         Task<bool> Exist(int id);

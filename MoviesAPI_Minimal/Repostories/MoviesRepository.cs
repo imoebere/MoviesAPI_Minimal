@@ -63,8 +63,6 @@ namespace MoviesAPI_Minimal.Repostories
                 }
                 //var movie = await connection.QueryFirstOrDefaultAsync<Movie>("Movies_GetById",
                    // new { id }, commandType: CommandType.StoredProcedure);
-
-               
             }
         }
 
@@ -100,6 +98,23 @@ namespace MoviesAPI_Minimal.Repostories
             using (var connection = new SqlConnection(connectionString))
             {
                 await connection.ExecuteAsync("Movies_Delete", new { id },
+                    commandType: CommandType.StoredProcedure);
+            }
+        }
+
+        public async Task Assign(int id, List<int> genresIds)
+        {
+            var dt = new DataTable();
+            dt.Columns.Add("Id", typeof(int));
+
+            foreach(var genresId in genresIds)
+            {
+                dt.Rows.Add(genresId);
+            }
+
+            using (var connection = new SqlConnection(connectionString))
+            {
+                await connection.ExecuteAsync("Movies_AssignGenres", new {movieId = id, genresIds = dt },
                     commandType: CommandType.StoredProcedure);
             }
         }

@@ -50,6 +50,24 @@ namespace MoviesAPI_Minimal.Repostories
             }
         }
 
+        public async Task<List<int>> Exists(List<int> Ids)
+        {
+            var dt = new DataTable();
+            dt.Columns.Add("Id", typeof(int));
+
+            foreach (var genresId in Ids)
+            {
+                dt.Rows.Add(genresId);
+            }
+
+            using (var connection = new SqlConnection(connectionStrings))
+            {
+                var idsOfGenresThatExists = await connection.QueryAsync<int>("Genres_GetBySeveralIds",
+                    new { genresIds = dt }, commandType: CommandType.StoredProcedure);
+
+                return idsOfGenresThatExists.ToList();
+            }
+        }
         public async Task<List<Genre>> GetAll()
         {
             using (var connection = new SqlConnection(connectionStrings))
