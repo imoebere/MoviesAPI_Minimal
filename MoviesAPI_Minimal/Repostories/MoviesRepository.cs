@@ -118,5 +118,29 @@ namespace MoviesAPI_Minimal.Repostories
                     commandType: CommandType.StoredProcedure);
             }
         }
+
+        public async Task Assign (int Id, List<ActorMovie> actorMovies)
+        {
+            for(int i = 1; i < actorMovies.Count; i++)
+            {
+                actorMovies[i - 1].Order = i;
+            }
+
+            var dt = new DataTable();
+            dt.Columns.Add("ActorId",  typeof(int));
+            dt.Columns.Add("Character", typeof(string));
+            dt.Columns.Add("Order", typeof(int));
+
+            foreach (var actorMovie in actorMovies)
+            {
+                dt.Rows.Add(actorMovie.ActorId, actorMovie.Character, actorMovie.Order);
+            }
+
+            using ( var connection = new SqlConnection(connectionString))
+            {
+                await connection.ExecuteAsync("Movies_AssignActors", new { movieId = Id, actors = dt },
+                    commandType: CommandType.StoredProcedure);
+            }
+        }
     }
 }
