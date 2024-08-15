@@ -21,6 +21,8 @@ namespace MoviesAPI_Minimal.Utilities
 
             CreateMap<Comment, CommentDTO>();
             CreateMap<CreateCommentDTO, Comment>();
+
+            CreateMap<AssignActorMovieDTO, ActorMovie>();
         }
     }
 }

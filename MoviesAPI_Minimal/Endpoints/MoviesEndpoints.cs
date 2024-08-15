@@ -13,7 +13,7 @@ namespace MoviesAPI_Minimal.Endpoints
     public static class MoviesEndpoints
     {
         private readonly static string container = "movies";
-        public static RouteGroupBuilder MapMovies(this RouteGroupBuilder group) 
+        public static RouteGroupBuilder MapMovies(this RouteGroupBuilder group)
         {
             group.MapGet("/", GetAll)
                 .CacheOutput(c => c.Expire(TimeSpan.FromMinutes(1)).Tag("movies-get"));
@@ -50,7 +50,7 @@ namespace MoviesAPI_Minimal.Endpoints
 
 
         static async Task<Created<MovieDTO>> Create([FromForm] CreateMovieDTO createMovieDTO,
-            IFileStorage fileStorage, IOutputCacheStore outputCacheStore, IMapper mapper, 
+            IFileStorage fileStorage, IOutputCacheStore outputCacheStore, IMapper mapper,
             IMoviesRepository moviesRepository)
         {
             var movie = mapper.Map<Movie>(createMovieDTO);
@@ -87,7 +87,7 @@ namespace MoviesAPI_Minimal.Endpoints
             if (createMovieDTO.Poster is not null)
             {
                 var url = await fileStorage.Edit(movieForUpdate.Poster, container, createMovieDTO.Poster);
-                movieForUpdate.Poster= url;
+                movieForUpdate.Poster = url;
             }
 
             await moviesRepository.Update(movieForUpdate);
@@ -139,8 +139,16 @@ namespace MoviesAPI_Minimal.Endpoints
             await moviesRepository.Assign(id, genresIds);
             return TypedResults.NoContent();
 
-
         }
 
+        static async Task<Results<NoContent, NotFound, BadRequest<string>>> AssignActors (int id,
+            List<AssignActorMovieDTO> actorDTO, IMoviesRepository moviesRepository,
+            IActorsRepository actorsRepository, IMapper mapper)
+        {
+            if (!await moviesRepository.Exist(id))
+            {
+                return TypedResults.NoContent();
+            }
+        }
     }
 }
