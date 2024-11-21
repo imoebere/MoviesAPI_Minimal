@@ -22,6 +22,7 @@ namespace MoviesAPI_Minimal.Endpoints
             group.MapPut("/{id:int}", Update).DisableAntiforgery();
             group.MapDelete("/{id:int}", Delete);
             group.MapPost("/{id:int}/assignGenres", AssignGenres);
+            group.MapPost("/{id:int}/assignActors", AssignActors);
             return group;
         }
 
@@ -149,6 +150,25 @@ namespace MoviesAPI_Minimal.Endpoints
             {
                 return TypedResults.NoContent();
             }
+
+            var existingActors = new List<int>();
+            var actorsIds = actorDTO.Select(a => a.ActorId).ToList();
+
+            if (actorsIds.Count != 0)
+            {
+                existingActors = await actorsRepository.Exists(actorsIds);
+            }
+
+            if (existingActors.Count != actorsIds.Count)
+            {
+                var nonExistingActors = actorsIds.Except(existingActors);
+                var nonExistingActorsCSV = string.Join(",", nonExistingActors);
+                return TypedResults.BadRequest($"The actors of Id {nonExistingActorsCSV} do not exists");
+            }
+
+            var actors = mapper.Map<List<ActorMovie>>(actorDTO);
+            await moviesRepository.Assign(id, actors);
+            return TypedResults.NoContent();
         }
     }
 }
