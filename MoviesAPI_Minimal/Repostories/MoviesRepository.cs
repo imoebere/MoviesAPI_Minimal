@@ -57,8 +57,30 @@ namespace MoviesAPI_Minimal.Repostories
                 using(var multi = await connection.QueryMultipleAsync("Movies_GetById", new { id }))
                 {
                     var movie = await multi.ReadFirstAsync<Movie>();
-                    var comment = await multi.ReadAsync<Comment>();
-                    movie.Comments = comment.ToList();
+                    var comments = await multi.ReadAsync<Comment>();
+                    var genres = await multi.ReadAsync<Genre>();
+                    var actors = await multi.ReadAsync<ActorMovieDTO>();
+
+                    movie.Comments = comments.ToList();
+
+                    foreach (var genre in genres)
+                    {
+                        movie.GenresMovies.Add(new GenreMovie
+                        {
+                            GenreId = genre.Id,
+                            Genre = genre
+                        });
+                    }
+
+                    foreach (var actor in actors)
+                    {
+                        movie.ActorMovies.Add(new ActorMovie
+                        {
+                            ActorId = actor.Id,
+                            Character = actor.Character,
+                            Actor = new Actor { Name = actor.Name}
+                        });
+                    }
                     return movie;
                 }
                 //var movie = await connection.QueryFirstOrDefaultAsync<Movie>("Movies_GetById",
