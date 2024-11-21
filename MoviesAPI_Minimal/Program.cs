@@ -1,3 +1,4 @@
+using FluentValidation;
 using MoviesAPI_Minimal.Endpoints;
 using MoviesAPI_Minimal.Repostories;
 using MoviesAPI_Minimal.Repostories.Interface;
@@ -34,6 +35,8 @@ builder.Services.AddTransient<IFileStorage, LocalFileStorage>();
 builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddAutoMapper(typeof(Program));
+
+builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 
 //Services Zone - END
 
