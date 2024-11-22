@@ -50,6 +50,17 @@ namespace MoviesAPI_Minimal.Repostories
             }
         }
 
+        public async Task<bool> Exists(int id, string name)
+        {
+            using(var connection = new SqlConnection(connectionStrings))
+            {
+                var exists = await connection.QuerySingleAsync<bool>("Genres_ExistsByIdAndName", new {id, name},
+                    commandType: CommandType.StoredProcedure);
+
+                return exists;
+            }
+        }
+
         public async Task<List<int>> Exists(List<int> Ids)
         {
             var dt = new DataTable();

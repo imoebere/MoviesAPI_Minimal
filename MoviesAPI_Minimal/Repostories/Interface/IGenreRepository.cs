@@ -11,5 +11,6 @@ namespace MoviesAPI_Minimal.Repostories.Interface
         Task Update(Genre genre);
         Task Delete(int id);
         Task<List<int>> Exists(List<int> Ids);
+        Task<bool> Exists(int id, string name);
     }
 }
