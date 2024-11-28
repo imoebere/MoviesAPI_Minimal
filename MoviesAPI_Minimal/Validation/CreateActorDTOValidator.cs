@@ -8,12 +8,12 @@ namespace MoviesAPI_Minimal.Validation
         public CreateActorDTOValidator()
         {
             RuleFor(p => p.Name)
-             .NotEmpty().WithMessage("The field {PropertyName} is required")
-             .MaximumLength(150).WithMessage("The field {PropertyName} should be less than {MaxLength} characters");
+             .NotEmpty().WithMessage(ValidationUtilities.NonEmptyMessage)
+             .MaximumLength(150).WithMessage(ValidationUtilities.MaximumLengthMessage);
 
             var minimumDate = new DateTime(1900, 1, 1);
             RuleFor(p => p.DateOfBirth).GreaterThanOrEqualTo(minimumDate)
-                .WithMessage("The field {PropertyName} should be greater than " + minimumDate.ToString("yyyy-MM-dd"));
+                .WithMessage(ValidationUtilities.GreaterThanDate(minimumDate));
 
         }
     }
