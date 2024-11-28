@@ -13,15 +13,17 @@ namespace MoviesAPI_Minimal.Endpoints
         public static RouteGroupBuilder MapGenres(this RouteGroupBuilder group)
         {
             group.MapGet("/", GetGenres).CacheOutput(c => c.Expire(TimeSpan.FromSeconds(60)).Tag("genres-get"));
+            group.MapGet("/{id:int}", GetById).AddEndpointFilter(async (efiContext, next) =>
+            {
+                //This is the code that will execute before the endpoint
+                var result = await next(efiContext);
+                //This is the code that will execute after the endpoint
+                return result;
 
-            group.MapGet("/{id:int}", GetById);
-
+            });
             group.MapPost("/", Create);
-
             group.MapPut("/{id:int}", Update);
-
             group.MapDelete("/{id:int}", Delete);
-
             return group;
         }
 
