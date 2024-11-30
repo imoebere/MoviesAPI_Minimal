@@ -1,5 +1,7 @@
 using FluentValidation;
+using Microsoft.AspNetCore.Diagnostics;
 using MoviesAPI_Minimal.Endpoints;
+using MoviesAPI_Minimal.Entities;
 using MoviesAPI_Minimal.Repostories;
 using MoviesAPI_Minimal.Repostories.Interface;
 using MoviesAPI_Minimal.Services;
@@ -31,6 +33,8 @@ builder.Services.AddScoped<IGenreRepository, GenreRepository>();
 builder.Services.AddScoped<IActorsRepository, ActorsRepository>();
 builder.Services.AddScoped<IMoviesRepository, MoviesRepository>();
 builder.Services.AddScoped<ICommentsRepository, CommentsRepository>();
+builder.Services.AddScoped<IErrorRepository, ErrorRepository>();
+
 builder.Services.AddTransient<IFileStorage, LocalFileStorage>();
 builder.Services.AddHttpContextAccessor();
 
@@ -50,7 +54,26 @@ var app = builder.Build();
 app.UseSwagger();
 app.UseSwaggerUI();
 
-app.UseExceptionHandler();
+app.UseExceptionHandler(exceptionHandlerApp => exceptionHandlerApp.Run(async context =>
+{
+    var exceptionHandlerFeature = context.Features.Get<IExceptionHandlerFeature>();
+    var exception = exceptionHandlerFeature?.Error!;
+
+    var error = new Error();
+    error.Date = DateTime.UtcNow;
+    error.ErrorMessage = exception.Message;
+    error.StackTrace = exception.StackTrace;
+
+    var repository = context.RequestServices.GetRequiredService<IErrorRepository>();
+    await repository.Create(error);
+
+    await Results
+    .BadRequest(new 
+        { type = "error", 
+          message = "An unexpected exception has occured", 
+          status = 500 
+        }).ExecuteAsync(context);
+}));
 app.UseStatusCodePages();
 
 app.UseStaticFiles();
@@ -60,7 +83,10 @@ app.UseCors();
 app.UseOutputCache();
 
 //app.MapGet("/", () => "Hello, World");
-
+app.MapGet("/error", () =>
+{
+    throw new InvalidOperationException("example error");
+});
 app.MapGroup("/genres").MapGenres();
 app.MapGroup("/actors").MapActors();
 app.MapGroup("/movies").MapMovies();
