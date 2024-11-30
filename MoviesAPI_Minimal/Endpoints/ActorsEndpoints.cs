@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OutputCaching;
 using MoviesAPI_Minimal.DTOs;
 using MoviesAPI_Minimal.Entities;
+using MoviesAPI_Minimal.Filters;
 using MoviesAPI_Minimal.Repostories.Interface;
 using MoviesAPI_Minimal.Services;
 
@@ -19,8 +20,8 @@ namespace MoviesAPI_Minimal.Endpoints
                 .CacheOutput(c => c.Expire(TimeSpan.FromMinutes(1)).Tag("actors-get"));
             groupBuilder.MapGet("/{id:int}", GetById);
             groupBuilder.MapGet("getByName/{name}", GetByName);
-            groupBuilder.MapPost("/", Create).DisableAntiforgery();
-            groupBuilder.MapPut("/{id:int}", Update).DisableAntiforgery();
+            groupBuilder.MapPost("/", Create).DisableAntiforgery().AddEndpointFilter<ValidationFilter<CreateActorDTO>>();
+            groupBuilder.MapPut("/{id:int}", Update).DisableAntiforgery().AddEndpointFilter<ValidationFilter<CreateActorDTO>>();
             groupBuilder.MapDelete("/{id:int}", Delete);
             return groupBuilder;
 
@@ -56,16 +57,16 @@ namespace MoviesAPI_Minimal.Endpoints
             var actorsDTO = mapper.Map<List<ActorDTO>>(actors);
             return TypedResults.Ok(actorsDTO);
         }
-        static async Task<Results<Created<ActorDTO>, ValidationProblem>> Create([FromForm] CreateActorDTO createActorDTO, 
+        static async Task<Created<ActorDTO>> Create([FromForm] CreateActorDTO createActorDTO, 
             IActorsRepository actorsRepository, IOutputCacheStore outputCacheStore, IMapper mapper, 
-            IFileStorage fileStorage, IValidator<CreateActorDTO> validator)
+            IFileStorage fileStorage)
         {
-            var validationResult = await validator.ValidateAsync(createActorDTO);
+            /*var validationResult = await validator.ValidateAsync(createActorDTO);
 
             if (!validationResult.IsValid) 
             { 
                 return TypedResults.ValidationProblem(validationResult.ToDictionary());
-            }
+            }*/
 
             var actors = mapper.Map<Actor>(createActorDTO);
 
