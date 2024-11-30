@@ -38,6 +38,8 @@ builder.Services.AddAutoMapper(typeof(Program));
 
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 
+builder.Services.AddProblemDetails();
+
 //Services Zone - END
 
 var app = builder.Build();
@@ -47,6 +49,9 @@ var app = builder.Build();
 
 app.UseSwagger();
 app.UseSwaggerUI();
+
+app.UseExceptionHandler();
+app.UseStatusCodePages();
 
 app.UseStaticFiles();
 
