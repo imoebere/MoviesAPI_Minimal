@@ -1,5 +1,6 @@
 using FluentValidation;
 using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.Identity;
 using MoviesAPI_Minimal.Endpoints;
 using MoviesAPI_Minimal.Entities;
 using MoviesAPI_Minimal.Repostories;
@@ -10,6 +11,10 @@ using MoviesAPI_Minimal.Services;
 var builder = WebApplication.CreateBuilder(args);
 
 //Services Zone - BEGIN
+
+builder.Services.AddTransient<IUserStore<IdentityUser>, UserStore>();
+builder.Services.AddIdentityCore<IdentityUser>();
+builder.Services.AddTransient<SignInManager<IdentityUser>>();
 
 builder.Services.AddCors(options =>
 {
@@ -34,6 +39,7 @@ builder.Services.AddScoped<IActorsRepository, ActorsRepository>();
 builder.Services.AddScoped<IMoviesRepository, MoviesRepository>();
 builder.Services.AddScoped<ICommentsRepository, CommentsRepository>();
 builder.Services.AddScoped<IErrorRepository, ErrorRepository>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
 
 builder.Services.AddTransient<IFileStorage, LocalFileStorage>();
 builder.Services.AddHttpContextAccessor();
