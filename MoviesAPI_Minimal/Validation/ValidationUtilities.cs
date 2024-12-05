@@ -1,10 +1,14 @@
-﻿namespace MoviesAPI_Minimal.Validation
+﻿using MoviesAPI_Minimal.DTOs;
+
+namespace MoviesAPI_Minimal.Validation
 {
     public static class ValidationUtilities
     {
         public static string NonEmptyMessage = "The field {PropertyName} is required";
         public static string MaximumLengthMessage = "The field {PropertyName} should be less than {MaxLength} characters";
         public static string FirstLettterIsUpperCaseMessage = "The field {PropertyName} should start with uppercase";
+        public static string EmailAddressMessage = "The field {PropertyName} is not a valid email address";
+
         public static string GreaterThanDate(DateTime value) => "The field {PropertyName} should be greater than " + value.ToString("yyyy-MM-dd");
 
         public static bool FirstLetterIsUpperCase(string value)
