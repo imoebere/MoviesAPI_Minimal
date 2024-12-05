@@ -1,11 +1,13 @@
 using FluentValidation;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.IdentityModel.Tokens;
 using MoviesAPI_Minimal.Endpoints;
 using MoviesAPI_Minimal.Entities;
 using MoviesAPI_Minimal.Repostories;
 using MoviesAPI_Minimal.Repostories.Interface;
 using MoviesAPI_Minimal.Services;
+using MoviesAPI_Minimal.Utilities;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -50,7 +52,17 @@ builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 
 builder.Services.AddProblemDetails();
 
-builder.Services.AddAuthentication().AddJwtBearer();
+builder.Services.AddAuthentication().AddJwtBearer(options =>
+  options.TokenValidationParameters = new TokenValidationParameters
+  {
+      ValidateIssuer = false,
+      ValidateAudience = false,
+      ValidateLifetime = true,
+      ValidateIssuerSigningKey = true,
+      ClockSkew = TimeSpan.Zero,
+      IssuerSigningKeys = KeysHandler.GetAllKeys(builder.Configuration)
+      //IssuerSigningKey = KeysHandler.GetKey(builder.Configuration).First()
+  });
 builder.Services.AddAuthorization();
 
 //Services Zone - END
