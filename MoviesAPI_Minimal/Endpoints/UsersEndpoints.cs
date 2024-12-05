@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using MoviesAPI_Minimal.DTOs;
+using MoviesAPI_Minimal.Filters;
 using MoviesAPI_Minimal.Utilities;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -13,11 +14,13 @@ namespace MoviesAPI_Minimal.Endpoints
     {
         public static RouteGroupBuilder MapUsers(this RouteGroupBuilder group) 
         {
+            group.MapPost("/", Register).AddEndpointFilter<ValidationFilter<UserCredentialsDTO>>();
             return group;
         }
 
         static async Task<Results<Ok<AuthenticationResponseDTO>, BadRequest<IEnumerable<IdentityError>>>> Register(
-            UserCredentialsDTO userCredentialsDTO, [FromServices] UserManager<IdentityUser> userManager, IConfiguration configuration)
+            UserCredentialsDTO userCredentialsDTO, [FromServices] UserManager<IdentityUser> userManager, 
+            IConfiguration configuration)
         {
             var user = new IdentityUser
             {
@@ -29,7 +32,8 @@ namespace MoviesAPI_Minimal.Endpoints
 
             if (result.Succeeded)
             {
-
+                var authenticationResponse = await BuildToken(userCredentialsDTO, configuration, userManager);
+                return TypedResults.Ok(authenticationResponse);
             }
             else
             {
@@ -46,15 +50,24 @@ namespace MoviesAPI_Minimal.Endpoints
                 new Claim("Whatever I want", "This is a value")
             };
             var user = await userManager.FindByNameAsync(userCredentialsDTO.Email);
-            var claimFromDB = await userManager.GetClaimsAsync(user!);
+            var claimsFromDB = await userManager.GetClaimsAsync(user!);
 
-            claims.AddRange(claimFromDB);
+            claims.AddRange(claimsFromDB);
 
             var key = KeysHandler.GetKey(configuration).First();
             var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
             var expiration = DateTime.UtcNow.AddYears(1);
 
-            var securityToken = new JwtSecurityToken(issuer: null)
+            var securityToken = new JwtSecurityToken(issuer: null, audience: null, claims: claims,
+                expires: expiration, signingCredentials: credentials);
+
+            var token = new JwtSecurityTokenHandler().WriteToken(securityToken);
+
+            return new AuthenticationResponseDTO
+            {
+                Token = token,
+                Expiration = expiration
+            };
         }
     }
 }

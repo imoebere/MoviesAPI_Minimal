@@ -60,7 +60,7 @@ builder.Services.AddAuthentication().AddJwtBearer(options =>
       ValidateLifetime = true,
       ValidateIssuerSigningKey = true,
       ClockSkew = TimeSpan.Zero,
-      IssuerSigningKeys = KeysHandler.GetAllKeys(builder.Configuration)
+      IssuerSigningKeys = KeysHandler.GetAllKeys(builder.Configuration),
       //IssuerSigningKey = KeysHandler.GetKey(builder.Configuration).First()
   });
 builder.Services.AddAuthorization();
@@ -113,6 +113,7 @@ app.MapGroup("/genres").MapGenres();
 app.MapGroup("/actors").MapActors();
 app.MapGroup("/movies").MapMovies();
 app.MapGroup("/movies/{movieId:int}/comments").MapComments();
+app.MapGroup("/users").MapUsers();
 
 // Middleware - END
 
