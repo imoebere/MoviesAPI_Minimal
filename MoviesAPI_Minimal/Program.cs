@@ -7,6 +7,7 @@ using MoviesAPI_Minimal.Entities;
 using MoviesAPI_Minimal.Repostories;
 using MoviesAPI_Minimal.Repostories.Interface;
 using MoviesAPI_Minimal.Services;
+using MoviesAPI_Minimal.Services.Interface;
 using MoviesAPI_Minimal.Utilities;
 
 
@@ -44,7 +45,9 @@ builder.Services.AddScoped<IErrorRepository, ErrorRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 
 builder.Services.AddTransient<IFileStorage, LocalFileStorage>();
+builder.Services.AddTransient<IUsersService, UsersService>();
 builder.Services.AddHttpContextAccessor();
+
 
 builder.Services.AddAutoMapper(typeof(Program));
 
@@ -53,16 +56,19 @@ builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 builder.Services.AddProblemDetails();
 
 builder.Services.AddAuthentication().AddJwtBearer(options =>
-  options.TokenValidationParameters = new TokenValidationParameters
-  {
-      ValidateIssuer = false,
-      ValidateAudience = false,
-      ValidateLifetime = true,
-      ValidateIssuerSigningKey = true,
-      ClockSkew = TimeSpan.Zero,
-      IssuerSigningKeys = KeysHandler.GetAllKeys(builder.Configuration),
-      //IssuerSigningKey = KeysHandler.GetKey(builder.Configuration).First()
-  });
+{
+    options.MapInboundClaims = false;
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = false,
+        ValidateAudience = false,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ClockSkew = TimeSpan.Zero,
+        IssuerSigningKeys = KeysHandler.GetAllKeys(builder.Configuration),
+        //IssuerSigningKey = KeysHandler.GetKey(builder.Configuration).First()
+    };
+});
 builder.Services.AddAuthorization();
 
 //Services Zone - END

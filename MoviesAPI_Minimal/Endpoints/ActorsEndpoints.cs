@@ -7,7 +7,7 @@ using MoviesAPI_Minimal.DTOs;
 using MoviesAPI_Minimal.Entities;
 using MoviesAPI_Minimal.Filters;
 using MoviesAPI_Minimal.Repostories.Interface;
-using MoviesAPI_Minimal.Services;
+using MoviesAPI_Minimal.Services.Interface;
 
 namespace MoviesAPI_Minimal.Endpoints
 {
