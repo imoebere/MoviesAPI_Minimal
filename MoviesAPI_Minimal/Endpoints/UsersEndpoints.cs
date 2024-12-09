@@ -6,6 +6,7 @@ using MoviesAPI_Minimal.DTOs;
 using MoviesAPI_Minimal.Filters;
 using MoviesAPI_Minimal.Utilities;
 using System.IdentityModel.Tokens.Jwt;
+using System.Runtime.CompilerServices;
 using System.Security.Claims;
 
 namespace MoviesAPI_Minimal.Endpoints
@@ -14,7 +15,8 @@ namespace MoviesAPI_Minimal.Endpoints
     {
         public static RouteGroupBuilder MapUsers(this RouteGroupBuilder group) 
         {
-            group.MapPost("/", Register).AddEndpointFilter<ValidationFilter<UserCredentialsDTO>>();
+            group.MapPost("/register", Register).AddEndpointFilter<ValidationFilter<UserCredentialsDTO>>();
+            group.MapPost("/Login", Login).AddEndpointFilter<ValidationFilter<UserCredentialsDTO>>();
             return group;
         }
 
@@ -40,18 +42,45 @@ namespace MoviesAPI_Minimal.Endpoints
                 return TypedResults.BadRequest(result.Errors);
             }
         }
+        static async Task<Results<Ok<AuthenticationResponseDTO>, BadRequest<string>>> Login(
+            UserCredentialsDTO userCredentialsDTO, [FromServices] SignInManager<IdentityUser> signInManager, 
+            [FromServices] UserManager<IdentityUser> userManager, IConfiguration configuration)
+        {
+            var user = await userManager.FindByEmailAsync(userCredentialsDTO.Email);
+            if (user == null) 
+            {
+                return TypedResults.BadRequest("There was a problem with the Email or Password");
+            }
+            var results = await signInManager.CheckPasswordSignInAsync(user, 
+                userCredentialsDTO.Password, lockoutOnFailure: false);
+
+            if (results.Succeeded) 
+            {
+                var authenticationResponse = await BuildToken(userCredentialsDTO, configuration, userManager);
+                return TypedResults.Ok(authenticationResponse);
+            }
+            else
+            {
+                return TypedResults.BadRequest("There was a problem with the Email or Password");
+            }
+
+        }
 
         private async static Task<AuthenticationResponseDTO> BuildToken(UserCredentialsDTO userCredentialsDTO,
             IConfiguration configuration, UserManager<IdentityUser> userManager)
         {
+
+            var user = await userManager.FindByNameAsync(userCredentialsDTO.Email);
+            if (user == null) throw new InvalidOperationException("User not found while building token.");
+
             var claims = new List<Claim>
             {
-                new Claim("email", userCredentialsDTO.Email),
-                new Claim("Whatever I want", "This is a value")
+                new Claim("email", userCredentialsDTO.Email)
+                //new Claim("Whatever I want", "This is a value")
             };
-            var user = await userManager.FindByNameAsync(userCredentialsDTO.Email);
-            var claimsFromDB = await userManager.GetClaimsAsync(user!);
-
+            /*var user = await userManager.FindByNameAsync(userCredentialsDTO.Email);
+            if (user == null) return (AuthenticationResponseDTO)Results.Unauthorized();*/
+            var claimsFromDB = await userManager.GetClaimsAsync(user);
             claims.AddRange(claimsFromDB);
 
             var key = KeysHandler.GetKey(configuration).First();
