@@ -70,8 +70,8 @@ namespace MoviesAPI_Minimal.Endpoints
             IConfiguration configuration, UserManager<IdentityUser> userManager)
         {
 
-            var user = await userManager.FindByNameAsync(userCredentialsDTO.Email);
-            if (user == null) throw new InvalidOperationException("User not found while building token.");
+            /*var user = await userManager.FindByNameAsync(userCredentialsDTO.Email);
+            if (user == null) throw new InvalidOperationException("User not found while building token.");*/
 
             var claims = new List<Claim>
             {
@@ -79,9 +79,8 @@ namespace MoviesAPI_Minimal.Endpoints
                 //new Claim("Whatever I want", "This is a value")
             };
             /*var user = await userManager.FindByNameAsync(userCredentialsDTO.Email);
-            if (user == null) return (AuthenticationResponseDTO)Results.Unauthorized();*/
-            var claimsFromDB = await userManager.GetClaimsAsync(user);
-            claims.AddRange(claimsFromDB);
+            var claimsFromDB = await userManager.GetClaimsAsync(user!);
+            claims.AddRange(claimsFromDB);*/
 
             var key = KeysHandler.GetKey(configuration).First();
             var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
