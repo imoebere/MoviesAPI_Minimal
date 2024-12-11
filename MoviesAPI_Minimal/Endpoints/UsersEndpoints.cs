@@ -70,13 +70,11 @@ namespace MoviesAPI_Minimal.Endpoints
             IConfiguration configuration, UserManager<IdentityUser> userManager)
         {
 
-            /*var user = await userManager.FindByNameAsync(userCredentialsDTO.Email);
-            if (user == null) throw new InvalidOperationException("User not found while building token.");*/
 
             var claims = new List<Claim>
             {
-                new Claim("email", userCredentialsDTO.Email)
-                //new Claim("Whatever I want", "This is a value")
+                new Claim("email", userCredentialsDTO.Email),
+                new Claim("Whatever I want", "This is a value")
             };
             /*var user = await userManager.FindByNameAsync(userCredentialsDTO.Email);
             var claimsFromDB = await userManager.GetClaimsAsync(user!);
