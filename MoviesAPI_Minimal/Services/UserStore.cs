@@ -14,9 +14,9 @@ namespace MoviesAPI_Minimal.Services
             this.userRepository = userRepository;
         }
 
-        public Task AddClaimsAsync(IdentityUser user, IEnumerable<Claim> claims, CancellationToken cancellationToken)
+        public async Task AddClaimsAsync(IdentityUser user, IEnumerable<Claim> claims, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            await userRepository.AssignClaims(user, claims);
         }
 
         public async Task<IdentityResult> CreateAsync(IdentityUser user, CancellationToken cancellationToken)
@@ -49,9 +49,9 @@ namespace MoviesAPI_Minimal.Services
             return await userRepository.GetByEmail(normalizedUserName);
         }
 
-        public Task<IList<Claim>> GetClaimsAsync(IdentityUser user, CancellationToken cancellationToken)
+        public async Task<IList<Claim>> GetClaimsAsync(IdentityUser user, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            return await userRepository.GetClaims(user);
         }
 
         public Task<string?> GetEmailAsync(IdentityUser user, CancellationToken cancellationToken)
@@ -99,9 +99,9 @@ namespace MoviesAPI_Minimal.Services
             throw new NotImplementedException();
         }
 
-        public Task RemoveClaimsAsync(IdentityUser user, IEnumerable<Claim> claims, CancellationToken cancellationToken)
+        public async Task RemoveClaimsAsync(IdentityUser user, IEnumerable<Claim> claims, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            await userRepository.RemoveClaims(user, claims);
         }
 
         public Task ReplaceClaimAsync(IdentityUser user, Claim claim, Claim newClaim, CancellationToken cancellationToken)
@@ -144,7 +144,7 @@ namespace MoviesAPI_Minimal.Services
 
         public Task<IdentityResult> UpdateAsync(IdentityUser user, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            return Task.FromResult(IdentityResult.Success);
         }
     }
 }

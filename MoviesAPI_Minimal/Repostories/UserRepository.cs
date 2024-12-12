@@ -57,7 +57,25 @@ namespace MoviesAPI_Minimal.Repostories
 
         public async Task AssignClaims(IdentityUser user, IEnumerable<Claim> claims)
         {
+            var sql = @"INSERT INTO UsersClaims (UserId, ClaimType, ClaimValue) 
+                                                VALUES (@Id, @Type, @Value)";
+            var parameters = claims.Select(x => new {user.Id, x.Type, x.Value});
 
+            using (var connetion = new SqlConnection(connetionString))
+            {
+                await connetion.ExecuteAsync(sql, parameters);
+            }
+        }
+
+        public async Task RemoveClaims(IdentityUser user, IEnumerable<Claim> claims)
+        {
+            var sql = "DELETE UsersClaims WHERE UserId = @Id AND ClaimType = @Type";
+            var parameters = claims.Select(x => new { user.Id, x.Type });
+
+            using (var connetion = new SqlConnection(connetionString))
+            {
+                await connetion.ExecuteAsync(sql, parameters);
+            }
         }
     }
 }
