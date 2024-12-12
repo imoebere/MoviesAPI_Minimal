@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Data.SqlClient;
 using MoviesAPI_Minimal.Repostories.Interface;
 using System.Data;
+using System.Security.Claims;
 
 namespace MoviesAPI_Minimal.Repostories
 {
@@ -42,6 +43,21 @@ namespace MoviesAPI_Minimal.Repostories
             }
 
             return user.Id;
+        }
+
+        public async Task<IList<Claim>> GetClaims(IdentityUser user)
+        {
+            using (var connetion = new SqlConnection(connetionString))
+            {
+                var claims = await connetion.QueryAsync<Claim>("Users_GetClaims", new { user.Id },
+                    commandType: CommandType.StoredProcedure);
+                return claims.ToList();
+            }
+        }
+
+        public async Task AssignClaims(IdentityUser user, IEnumerable<Claim> claims)
+        {
+
         }
     }
 }
