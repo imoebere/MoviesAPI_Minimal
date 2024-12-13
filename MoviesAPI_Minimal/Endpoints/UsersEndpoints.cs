@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using MoviesAPI_Minimal.DTOs;
 using MoviesAPI_Minimal.Filters;
+using MoviesAPI_Minimal.Services.Interface;
 using MoviesAPI_Minimal.Utilities;
 using System.IdentityModel.Tokens.Jwt;
 using System.Runtime.CompilerServices;
@@ -17,6 +18,14 @@ namespace MoviesAPI_Minimal.Endpoints
         {
             group.MapPost("/register", Register).AddEndpointFilter<ValidationFilter<UserCredentialsDTO>>();
             group.MapPost("/Login", Login).AddEndpointFilter<ValidationFilter<UserCredentialsDTO>>();
+
+            group.MapPost("/makeadmin", MakeAdmin).AddEndpointFilter<ValidationFilter<EditClaimDTO>>()
+                .RequireAuthorization("isadmin");
+
+            group.MapPost("/removeadmin", RemoveAdmin).AddEndpointFilter<ValidationFilter<EditClaimDTO>>()
+                .RequireAuthorization("isadmin");
+
+            group.MapGet("/renewtoken", Renew).RequireAuthorization();
             return group;
         }
 
@@ -66,6 +75,45 @@ namespace MoviesAPI_Minimal.Endpoints
 
         }
 
+        static async Task<Results<NoContent, NotFound>> MakeAdmin(EditClaimDTO editClaimDTO,
+            [FromServices] UserManager<IdentityUser> userManager)
+        {
+            var user = await userManager.FindByEmailAsync(editClaimDTO.Email);
+            if (user is null)
+            {
+                return TypedResults.NotFound();
+            }
+            await userManager.AddClaimAsync(user, new Claim("isadmin", "true"));
+            return TypedResults.NoContent();
+        }
+
+        static async Task<Results<NoContent, NotFound>> RemoveAdmin(EditClaimDTO editClaimDTO,
+            [FromServices] UserManager<IdentityUser> userManager)
+        {
+            var user = await userManager.FindByEmailAsync(editClaimDTO.Email);
+            if (user is null)
+            {
+                return TypedResults.NotFound();
+            }
+            await userManager.RemoveClaimAsync(user, new Claim("isadmin", "true"));
+            return TypedResults.NoContent();
+        }
+
+        private async static Task<Results<NotFound, Ok<AuthenticationResponseDTO>>> Renew(IUsersService usersService,
+            IConfiguration configuration, [FromServices] UserManager<IdentityUser> userManager)
+        {
+            var user = await usersService.GetUser();
+            if (user is null)
+            {
+                return TypedResults.NotFound();
+            }
+
+            var usersCredentials = new UserCredentialsDTO { Email = user.Email! };
+            var response = await BuildToken(usersCredentials, configuration, userManager);
+
+            return TypedResults.Ok(response);
+        }
+
         private async static Task<AuthenticationResponseDTO> BuildToken(UserCredentialsDTO userCredentialsDTO,
             IConfiguration configuration, UserManager<IdentityUser> userManager)
         {
@@ -76,9 +124,9 @@ namespace MoviesAPI_Minimal.Endpoints
                 new Claim("email", userCredentialsDTO.Email),
                 new Claim("Whatever I want", "This is a value")
             };
-            /*var user = await userManager.FindByNameAsync(userCredentialsDTO.Email);
+            var user = await userManager.FindByNameAsync(userCredentialsDTO.Email);
             var claimsFromDB = await userManager.GetClaimsAsync(user!);
-            claims.AddRange(claimsFromDB);*/
+            claims.AddRange(claimsFromDB);
 
             var key = KeysHandler.GetKey(configuration).First();
             var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
