@@ -1,4 +1,5 @@
 ﻿using Microsoft.IdentityModel.Tokens;
+using MoviesAPI_Minimal.Utilities;
 
 namespace MoviesAPI_Minimal.DTOs
 {
@@ -31,17 +32,20 @@ namespace MoviesAPI_Minimal.DTOs
         public static ValueTask<PaginationDTO> BindAsync(HttpContext context)
         {
             //nameof(page) = "page"
-            var page = context.Request.Query[nameof(Page)];
+
+            var page = context.ExtractValueOrDefault(nameof(Page), pageInitialValue);
+            var recordsPerPage = context.ExtractValueOrDefault(nameof(RecordsPerPage), recordsPerPageInitialValue); 
+           /* var page = context.Request.Query[nameof(Page)];
             var recordsPerPage = context.Request.Query[nameof(RecordsPerPage)];
 
             var pageInt = page.IsNullOrEmpty() ? pageInitialValue : int.Parse(page.ToString());
             var recordsPerPageInt = recordsPerPage.IsNullOrEmpty() 
-                ? recordsPerPageInitialValue : int.Parse(recordsPerPage.ToString());
+                ? recordsPerPageInitialValue : int.Parse(recordsPerPage.ToString());*/
 
             var response = new PaginationDTO
             {
-                Page = pageInt,
-                RecordsPerPage = recordsPerPageInt
+                Page = page,
+                RecordsPerPage = recordsPerPage
             };
 
             return ValueTask.FromResult(response);
