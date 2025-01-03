@@ -1,8 +1,8 @@
 using FluentValidation;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using MoviesAPI_Minimal.Endpoints;
 using MoviesAPI_Minimal.Entities;
 using MoviesAPI_Minimal.Repostories;
@@ -36,7 +36,20 @@ builder.Services.AddOutputCache();
 
 builder.Services.AddEndpointsApiExplorer();
 
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "Movies API",
+        Description = "This is a Web API for Movies", 
+        Contact = new OpenApiContact
+        {
+            Email = "imoebereedward2017@gmail.com",
+            Name = "Ebere Imo", 
+            Url = new Uri ("https://github.com/imoebere/MoviesAPI_Minimal")
+        }
+    });
+});
 
 builder.Services.AddScoped<IGenreRepository, GenreRepository>();
 builder.Services.AddScoped<IActorsRepository, ActorsRepository>();

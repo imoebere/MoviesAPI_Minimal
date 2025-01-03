@@ -22,7 +22,16 @@ namespace MoviesAPI_Minimal.Endpoints
                 .RequireAuthorization("isadmin");
             group.MapPut("/{id:int}", Update)
                 .AddEndpointFilter<ValidationFilter<CreateGenreDTO>>()
-                .RequireAuthorization("isadmin");
+                .RequireAuthorization("isadmin")
+                .WithOpenApi(options =>
+                {
+                    options.Summary = "Update a genre";
+                    options.Description = "This Endpoint is use to update genre";
+                    options.Parameters[0].Description = "The Id of the genre to update";
+                    options.RequestBody.Description = "The genre to update";
+
+                    return options;
+                });
             group.MapDelete("/{id:int}", Delete).RequireAuthorization("isadmin");
             return group;
         }

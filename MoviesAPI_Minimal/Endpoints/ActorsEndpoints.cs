@@ -26,12 +26,14 @@ namespace MoviesAPI_Minimal.Endpoints
             groupBuilder.MapPost("/", Create)
                 .DisableAntiforgery()
                 .AddEndpointFilter<ValidationFilter<CreateActorDTO>>()
-                .RequireAuthorization("isadmin");
+                .RequireAuthorization("isadmin")
+                .WithOpenApi();
 
             groupBuilder.MapPut("/{id:int}", Update)
                 .DisableAntiforgery()
                 .AddEndpointFilter<ValidationFilter<CreateActorDTO>>()
-                .RequireAuthorization("isadmin");
+                .RequireAuthorization("isadmin")
+                .WithOpenApi();
 
             groupBuilder.MapDelete("/{id:int}", Delete).RequireAuthorization("isadmin");
             return groupBuilder;
