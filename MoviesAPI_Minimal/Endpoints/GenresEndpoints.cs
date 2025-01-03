@@ -43,7 +43,6 @@ namespace MoviesAPI_Minimal.Endpoints
         }
 
         static async Task<Results<Ok<GenreDTO>, NotFound>> GetById([AsParameters] GetGenreByIdRequestDTO Model)
-            //int id, IGenreRepository genreRepository, IMapper mapper)
         {
             var genres = await Model.Repository.GetById(Model.Id);
 
@@ -56,8 +55,8 @@ namespace MoviesAPI_Minimal.Endpoints
             return TypedResults.Ok(genreDTO);
         }
 
-        static async Task<Created<GenreDTO>> Create(CreateGenreDTO createGenresDTO, IGenreRepository genresRepository,
-            IOutputCacheStore outputCacheStore, IMapper mapper)
+        static async Task<Created<GenreDTO>> Create(CreateGenreDTO createGenresDTO, [AsParameters] 
+        CreateGenreRequestDTO model)
         {
             /*var validateResult = await validator.ValidateAsync(createGenresDTO);
 
@@ -66,11 +65,11 @@ namespace MoviesAPI_Minimal.Endpoints
                 return TypedResults.ValidationProblem(validateResult.ToDictionary());
             }*/
 
-            var genres = mapper.Map<Genre>(createGenresDTO); 
-            await genresRepository.Create(genres);
-            await outputCacheStore.EvictByTagAsync("genres-get", default);
+            var genres = model.Mapper.Map<Genre>(createGenresDTO); 
+            await model.GenresRepository.Create(genres);
+            await model.OutputCacheStore.EvictByTagAsync("genres-get", default);
 
-            var genreDTO = mapper.Map<GenreDTO>(genres);
+            var genreDTO = model.Mapper.Map<GenreDTO>(genres);
             return TypedResults.Created($"/genres/{genres.Id}", genreDTO);
         }
 
