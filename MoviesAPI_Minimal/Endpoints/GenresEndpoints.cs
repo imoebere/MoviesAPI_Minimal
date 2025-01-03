@@ -14,8 +14,8 @@ namespace MoviesAPI_Minimal.Endpoints
         public static RouteGroupBuilder MapGenres(this RouteGroupBuilder group)
         {
             group.MapGet("/", GetGenres).
-                CacheOutput(c => c.Expire(TimeSpan.FromSeconds(60)).Tag("genres-get"))
-                .RequireAuthorization();
+                CacheOutput(c => c.Expire(TimeSpan.FromSeconds(60)).Tag("genres-get")).
+                RequireAuthorization();
             group.MapGet("/{id:int}", GetById);
             group.MapPost("/", Create)
                 .AddEndpointFilter<ValidationFilter<CreateGenreDTO>>()
@@ -28,8 +28,13 @@ namespace MoviesAPI_Minimal.Endpoints
         }
 
 
-        static async Task<Ok<List<GenreDTO>>> GetGenres(IGenreRepository genreRepository, IMapper mapper)
+        static async Task<Ok<List<GenreDTO>>> GetGenres(IGenreRepository genreRepository, IMapper mapper, 
+            ILoggerFactory loggerFactory)
         {
+            var type = typeof(GenresEndpoints);
+            var logger = loggerFactory.CreateLogger(type.FullName!);
+            logger.LogInformation("Getting the list of genres");
+            
             var genres = await genreRepository.GetAll();
             var genreDTOs = mapper.Map<List<GenreDTO>>(genres);
                 //genres.Select(x => new GenreDTO { Id = x.Id, Name = x.Name}).ToList();
@@ -37,16 +42,16 @@ namespace MoviesAPI_Minimal.Endpoints
 
         }
 
-        static async Task<Results<Ok<GenreDTO>, NotFound>> GetById(int id, IGenreRepository genreRepository, 
-                        IMapper mapper)
+        static async Task<Results<Ok<GenreDTO>, NotFound>> GetById([AsParameters] GetGenreByIdRequestDTO Model)
+            //int id, IGenreRepository genreRepository, IMapper mapper)
         {
-            var genres = await genreRepository.GetById(id);
+            var genres = await Model.Repository.GetById(Model.Id);
 
             if (genres is null)
             {
                 return TypedResults.NotFound();
             }
-            var genreDTO = mapper.Map<GenreDTO>(genres);
+            var genreDTO = Model.Mapper.Map<GenreDTO>(genres);
             //new GenreDTO{Id = genres.Id,Name = genres.Name};
             return TypedResults.Ok(genreDTO);
         }

@@ -1,6 +1,7 @@
 using FluentValidation;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using MoviesAPI_Minimal.Endpoints;
 using MoviesAPI_Minimal.Entities;
@@ -118,6 +119,14 @@ app.MapGet("/error", () =>
 {
     throw new InvalidOperationException("example error");
 });
+
+/*app.MapPost("/modelbinding", ([FromHeader] string? name) =>
+{
+    if (name is null) name = "Empty";
+    return TypedResults.Ok(name);
+
+});*/
+
 app.MapGroup("/genres").MapGenres();
 app.MapGroup("/actors").MapActors();
 app.MapGroup("/movies").MapMovies();
