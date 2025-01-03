@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using FluentValidation;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OutputCaching;
@@ -8,6 +7,7 @@ using MoviesAPI_Minimal.Entities;
 using MoviesAPI_Minimal.Filters;
 using MoviesAPI_Minimal.Repostories.Interface;
 using MoviesAPI_Minimal.Services.Interface;
+using MoviesAPI_Minimal.Utilities;
 
 namespace MoviesAPI_Minimal.Endpoints
 {
@@ -17,8 +17,9 @@ namespace MoviesAPI_Minimal.Endpoints
         public static RouteGroupBuilder MapActors(this RouteGroupBuilder groupBuilder) 
         {
             groupBuilder.MapGet("/", GetAll)
-                .CacheOutput(c => c.Expire(TimeSpan.FromMinutes(1)).Tag("actors-get"));
-
+                .CacheOutput(c => c.Expire(TimeSpan.FromMinutes(1)).Tag("actors-get"))
+                .AddPaginationParameters();
+            
             groupBuilder.MapGet("/{id:int}", GetById);
             groupBuilder.MapGet("getByName/{name}", GetByName);
 

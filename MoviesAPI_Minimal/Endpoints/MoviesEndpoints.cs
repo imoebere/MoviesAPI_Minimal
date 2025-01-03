@@ -8,6 +8,7 @@ using MoviesAPI_Minimal.Filters;
 using MoviesAPI_Minimal.Repostories;
 using MoviesAPI_Minimal.Repostories.Interface;
 using MoviesAPI_Minimal.Services.Interface;
+using MoviesAPI_Minimal.Utilities;
 
 namespace MoviesAPI_Minimal.Endpoints
 {
@@ -17,7 +18,9 @@ namespace MoviesAPI_Minimal.Endpoints
         public static RouteGroupBuilder MapMovies(this RouteGroupBuilder group)
         {
             group.MapGet("/", GetAll)
-                .CacheOutput(c => c.Expire(TimeSpan.FromMinutes(1)).Tag("movies-get"));
+                .CacheOutput(c => c.Expire(TimeSpan.FromMinutes(1)).Tag("movies-get"))
+                .AddPaginationParameters();
+
             group.MapGet("/{id:int}", GetById);
             group.MapPost("/", Create).DisableAntiforgery()
                 .AddEndpointFilter<ValidationFilter<CreateMovieDTO>>().RequireAuthorization("isadmin");
@@ -31,9 +34,8 @@ namespace MoviesAPI_Minimal.Endpoints
         }
 
         static async Task<Ok<List<MovieDTO>>> GetAll(IMoviesRepository moviesRepository, IMapper mapper,
-            int page = 1, int recordsPerPage = 10)
+           PaginationDTO pagination)
         {
-            var pagination = new PaginationDTO { Page = page, RecordsPerPage = recordsPerPage };
             var movies = await moviesRepository.GetAll(pagination);
             var movieDTO = mapper.Map<List<MovieDTO>>(movies);
             return TypedResults.Ok(movieDTO);

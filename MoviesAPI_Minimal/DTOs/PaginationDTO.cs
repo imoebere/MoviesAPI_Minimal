@@ -5,8 +5,8 @@ namespace MoviesAPI_Minimal.DTOs
 {
     public class PaginationDTO
     {
-        private const int pageInitialValue = 1;
-        private const int recordsPerPageInitialValue = 10;
+        public const int pageInitialValue = 1;
+        public const int recordsPerPageInitialValue = 10;
         public int Page { get; set; } = 1;
         private int recordsPerPage { get; set; } = 10;
         private readonly int recordsPerPageMax = 50;
