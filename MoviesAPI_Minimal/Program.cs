@@ -9,6 +9,7 @@ using MoviesAPI_Minimal.Repostories;
 using MoviesAPI_Minimal.Repostories.Interface;
 using MoviesAPI_Minimal.Services;
 using MoviesAPI_Minimal.Services.Interface;
+using MoviesAPI_Minimal.Swagger;
 using MoviesAPI_Minimal.Utilities;
 
 
@@ -49,6 +50,31 @@ builder.Services.AddSwaggerGen(options =>
             Url = new Uri ("https://github.com/imoebere/MoviesAPI_Minimal")
         }
     });
+
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.ApiKey,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header
+    });
+
+    options.OperationFilter<AuthorizationFilter>();
+   /* options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            new string[] { }
+        }
+    });*/
 });
 
 builder.Services.AddScoped<IGenreRepository, GenreRepository>();
