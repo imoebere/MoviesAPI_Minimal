@@ -164,5 +164,39 @@ namespace MoviesAPI_Minimal.Repostories
                     commandType: CommandType.StoredProcedure);
             }
         }
+
+        public async Task<List<Movie>> Filter(MoviesFilterDTO moviesFilterDTO)
+        {
+            using ( var connection = new SqlConnection(connectionString))
+            {
+                var movies = await connection.QueryAsync<Movie>("Movies_Filter", new
+                {
+                    moviesFilterDTO.Page,
+                    moviesFilterDTO.RecordsPerPage,
+                    moviesFilterDTO.Title,
+
+                    moviesFilterDTO.GenreId,
+                    moviesFilterDTO.FutureRealeases,
+                    moviesFilterDTO.InTheaters,
+
+                    moviesFilterDTO.OrderByField,
+                    moviesFilterDTO.OrderByAscending
+
+
+                }, commandType: CommandType.StoredProcedure);
+
+                var moviesCount = await connection.QuerySingleAsync<int>("Movies_Count", new
+                {
+                    moviesFilterDTO.Title,
+                    moviesFilterDTO.GenreId,
+                    moviesFilterDTO.FutureRealeases,
+                    moviesFilterDTO.InTheaters
+                }, commandType: CommandType.StoredProcedure);
+
+                httpContext.Response.Headers.Append("toalAmountOfRecords", moviesCount.ToString());
+
+                return movies.ToList();
+            }
+        }
     }
 }
