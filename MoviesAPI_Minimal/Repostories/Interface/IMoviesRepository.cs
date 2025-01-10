@@ -13,5 +13,6 @@ namespace MoviesAPI_Minimal.Repostories.Interface
         Task<List<Movie>> GetAll(PaginationDTO pagination);
         Task<Movie?> GetById(int id);
         Task Update(Movie movie);
+        Task<List<Movie>> Filter(MoviesFilterDTO moviesFilterDTO);
     }
 }

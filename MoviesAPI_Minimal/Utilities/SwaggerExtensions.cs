@@ -1,4 +1,5 @@
-﻿using Microsoft.OpenApi.Any;
+﻿using Microsoft.Extensions.Options;
+using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
 using MoviesAPI_Minimal.DTOs;
 
@@ -6,36 +7,112 @@ namespace MoviesAPI_Minimal.Utilities
 {
     public static class SwaggerExtensions
     {
+        public static TBuilder AddMoviesFilterParameters<TBuilder>(this TBuilder builder)
+            where TBuilder : IEndpointConventionBuilder
+        {
+            return builder.WithOpenApi(options =>
+            {
+                AddPaginationParameters(options);
+
+                options.Parameters.Add(new OpenApiParameter
+                {
+                    Name = "Title",
+                    In = ParameterLocation.Query,
+                    Schema = new OpenApiSchema
+                    {
+                        Type = "string"
+                    }
+                });
+
+                options.Parameters.Add(new OpenApiParameter
+                {
+                    Name = "InTheaters",
+                    In = ParameterLocation.Query,
+                    Schema = new OpenApiSchema
+                    {
+                        Type = "boolean"
+                    }
+                });
+
+                options.Parameters.Add(new OpenApiParameter
+                {
+                    Name = "GenreId",
+                    In = ParameterLocation.Query,
+                    Schema = new OpenApiSchema
+                    {
+                        Type = "integer"
+                    }
+                });
+
+                options.Parameters.Add(new OpenApiParameter
+                {
+                    Name = "FutureRealeases",
+                    In = ParameterLocation.Query,
+                    Schema = new OpenApiSchema
+                    {
+                        Type = "boolean"
+                    }
+                });
+
+                options.Parameters.Add(new OpenApiParameter
+                {
+                    Name = "OrderByField",
+                    In = ParameterLocation.Query,
+                    Schema = new OpenApiSchema
+                    {
+                        Type = "string"
+                    }
+                });
+
+                options.Parameters.Add(new OpenApiParameter
+                {
+                    Name = "OrderByAscending",
+                    In = ParameterLocation.Query,
+                    Schema = new OpenApiSchema
+                    {
+                        Type = "boolean"
+                    }
+                });
+
+                return options;
+
+            });
+        }
+
         public static TBuilder AddPaginationParameters<TBuilder>(this TBuilder builder) 
             where TBuilder : IEndpointConventionBuilder
         {
             return builder.WithOpenApi(options =>
             {
-                options.Parameters.Add(new OpenApiParameter
-                {
-                    Name = "Page",
-                    In = ParameterLocation.Query,
-                    Schema = new OpenApiSchema
-                    {
-                        Type = "integer",
-                        Default = new OpenApiInteger(PaginationDTO.pageInitialValue)
-                    }
-                });
-
-                options.Parameters.Add(new OpenApiParameter
-                {
-                    Name = "RecordsPerPage",
-                    In = ParameterLocation.Query,
-                    Schema = new OpenApiSchema
-                    {
-                        Type = "integer",
-                        Default = new OpenApiInteger(PaginationDTO.recordsPerPageInitialValue)
-                    }
-                });
+                AddPaginationParameters(options);
                 return options;
 
             });
+        }
 
+        private static void AddPaginationParameters(OpenApiOperation openApiOperation)
+        {
+            openApiOperation.Parameters.Add(new OpenApiParameter
+            {
+                Name = "Page",
+                In = ParameterLocation.Query,
+                Schema = new OpenApiSchema
+                {
+                    Type = "integer",
+                    Default = new OpenApiInteger(PaginationDTO.pageInitialValue)
+                }
+            });
+
+            openApiOperation.Parameters.Add(new OpenApiParameter
+            {
+                Name = "RecordsPerPage",
+                In = ParameterLocation.Query,
+                Schema = new OpenApiSchema
+                {
+                    Type = "integer",
+                    Default = new OpenApiInteger(PaginationDTO.recordsPerPageInitialValue)
+                }
+            });
         }
     }
 }
